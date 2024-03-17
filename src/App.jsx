@@ -2,6 +2,7 @@ import { useState } from "react";
 
 import Player from "./components/Player.jsx";
 import GameBoard from "./components/GameBoard.jsx";
+import Log from "./components/Log.jsx";
 
 const PLAYERS = {
   X: "Player 1",
@@ -36,34 +37,58 @@ function driveActivePlayer(gameTurns) {
 }
 
 function App() {
+  const [playerName, setPlayerName] = useState(PLAYERS);
   const [gameTurns, setGameTurns] = useState([]);
 
   const gameboard = driveGameBoard(gameTurns);
   const activePlayer = driveActivePlayer(gameTurns);
 
   function handleSelectSquare(row, col, valueOfPlayer) {
-    console.log(activePlayer);
     if (valueOfPlayer !== null) return;
 
     setGameTurns((prevState) => {
       const currentPlayer = driveActivePlayer(gameTurns);
 
       return [
-        { square: { row: row, col: col }, playerName: currentPlayer },
+        {
+          square: { row: row, col: col },
+          playerName: currentPlayer,
+        },
         ...prevState,
       ];
     });
-
-    console.log(row, col, valueOfPlayer);
   }
+
+  function handlePlayerName(symbol, newName) {
+    setPlayerName((prevPlayerName) => {
+      return {
+        ...prevPlayerName,
+        [symbol]: newName,
+      };
+    });
+  }
+
   return (
-    <div id="game-container">
-      <div id="players">
-        <Player playerName={PLAYERS.X} />
-        <Player playerName={PLAYERS.O} />
+    <main>
+      <div id="game-container">
+        <ol id="players" className="highlight-player">
+          <Player
+            initialName={PLAYERS.X}
+            symbol="X"
+            isActive={activePlayer === "X"}
+            onChange={handlePlayerName}
+          />
+          <Player
+            symbol="O"
+            initialName={PLAYERS.O}
+            isActive={activePlayer === "O"}
+            onChange={handlePlayerName}
+          />
+        </ol>
+        <GameBoard onSelect={handleSelectSquare} board={gameboard} />
       </div>
-      <GameBoard onSelect={handleSelectSquare} board={gameboard} />
-    </div>
+      <Log turns={gameTurns} playerN={playerName} />
+    </main>
   );
 }
 
