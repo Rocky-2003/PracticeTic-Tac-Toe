@@ -2,7 +2,10 @@ import { useState } from "react";
 
 import Player from "./components/Player.jsx";
 import GameBoard from "./components/GameBoard.jsx";
+import GameOver from "./components/GameOver.jsx";
 import Log from "./components/Log.jsx";
+
+import { WINNING_COMBINATIONS } from "../winning_combination.js";
 
 const PLAYERS = {
   X: "Player 1",
@@ -36,12 +39,35 @@ function driveActivePlayer(gameTurns) {
   return symbol;
 }
 
+function driveWinner(gameboard, playerName) {
+  let winnerName;
+  for (const combination of WINNING_COMBINATIONS) {
+    const firstSquareSymbol = gameboard[combination[0].row][combination[0].col];
+    const secondSquareSymbol =
+      gameboard[combination[1].row][combination[1].col];
+    const thirdSquareSymbol = gameboard[combination[2].row][combination[2].col];
+
+    if (
+      firstSquareSymbol &&
+      firstSquareSymbol === secondSquareSymbol &&
+      firstSquareSymbol === thirdSquareSymbol
+    ) {
+      winnerName = playerName[firstSquareSymbol];
+    }
+  }
+
+  return winnerName;
+}
+
 function App() {
   const [playerName, setPlayerName] = useState(PLAYERS);
   const [gameTurns, setGameTurns] = useState([]);
 
   const gameboard = driveGameBoard(gameTurns);
   const activePlayer = driveActivePlayer(gameTurns);
+
+  const winner = driveWinner(gameboard, playerName);
+  const hasDraw = gameTurns.length === 9 && !winner;
 
   function handleSelectSquare(row, col, valueOfPlayer) {
     if (valueOfPlayer !== null) return;
@@ -68,6 +94,10 @@ function App() {
     });
   }
 
+  function handleRestartMatch() {
+    setGameTurns([]);
+  }
+
   return (
     <main>
       <div id="game-container">
@@ -85,6 +115,9 @@ function App() {
             onChange={handlePlayerName}
           />
         </ol>
+        {(winner || hasDraw) && (
+          <GameOver winner={winner} onRestart={handleRestartMatch} />
+        )}
         <GameBoard onSelect={handleSelectSquare} board={gameboard} />
       </div>
       <Log turns={gameTurns} playerN={playerName} />
